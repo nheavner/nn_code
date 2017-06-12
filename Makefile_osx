@@ -1,0 +1,37 @@
+# Definitions of variables.
+
+CC      = icc # option: gcc-6
+CCFLAGS = -O
+LD      = icc # option: gcc-6
+LDFLAGS = -O
+
+# Definitions of rules.
+simple_test.x : simple_test.o compute_nuc_norm.o
+	@$(LD)  \
+	-o simple_test.x \
+	simple_test.o \
+	compute_nuc_norm.o \
+	/opt/intel/mkl/lib/libmkl_intel_ilp64.a \
+	/opt/intel/mkl/lib/libmkl_intel_thread.a \
+	/opt/intel/mkl/lib/libmkl_core.a \
+	-L/opt/intel/compilers_and_libraries_2017.2.163/mac/compiler/lib \
+	-liomp5 -lpthread -lm -ldl
+
+	@install_name_tool -change @rpath/libiomp5.dylib /opt/intel/compilers_and_libraries_2017.2.163/mac/compiler/lib/libiomp5.dylib ./simple_test.x
+
+simple_test.o : simple_test.c
+	@$(CC) -Wall -c simple_test.c \
+	-DMKL_ILP64 -m64 -I/opt/intel/mkl/include
+
+compute_nuc_norm.o : compute_nuc_norm.c
+	$(CC) -Wall -c compute_nuc_norm.c -DMKL_ILP64 -m64 -I/opt/intel/mkl/include
+
+%.o : %.c
+	$(CC) $(CCFLAGS) -c $< -o $@ \
+	-DMKL_ILP64 -m64 -I/opt/intel/mkl/include
+
+clean : FORCE
+	rm -f a.out *.x *.o *~ core
+
+FORCE :
+	
